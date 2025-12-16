@@ -1,0 +1,4 @@
+cffi==2.0.0
+dbus-fast==3.1.2
+pycparser==2.23
+xcffib==1.11.2

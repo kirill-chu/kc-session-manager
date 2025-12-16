@@ -1,0 +1,20 @@
+[project]
+name = "kc-session-manager"
+version = "0.1.0"
+authors = [{name = "kirill-chu", email = "nefka2006@yandex.ru"}]
+description = "Session manager for lightdm and qtile"
+readme = "README.md"
+license = {text = "AGPL-3.0-only"}
+requires-python = ">=3.13"
+dependencies = [
+    "dbus-fast>=3.1.2",
+    "xcffib>=1.11.2",
+]
+[project.scripts]
+kc-session-manager = "kc_session_manager.main:main"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["kc_session_manager*"]
+exclude = ["tests*", "docs*", "system_service/*"]

@@ -1,0 +1,19 @@
+[Unit]
+Description=Idle Manager for LightDM Sessions
+After=lightdm.service
+Wants=lightdm.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/kc-idle-manage.py
+User=lightdm
+Group=lightdm
+Restart=on-failure
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=kc-idle-manager
+
+[Install]
+WantedBy=graphical.target
