@@ -1,6 +1,6 @@
 ### kc-session-manager
 
-This is an attempt to bring some comfort to qtile life :)
+This is an attemption to bring some comfort to qtile life :)
 This solution was testend only with: Debian 13 + lightdm + x11 + qtile.
 
 ### Introduction
@@ -14,8 +14,8 @@ I thought if I use qtile I should try to use python to solve my issues.
 
 ### How it works
 
-The main issue I faced with was: 
-- lightdm, qtile do not work with logind (systemd-logind). It meens when you use commands like 
+The main issue I faced was: 
+- lightdm, qtile do not work with logind (systemd-logind). It meens when you use command like 
 ```shell
 loginct lock-session
 ```
@@ -24,5 +24,8 @@ When you left your pc is nothing happened with it, perhaps your screen turned of
 
 I found: dm-tools.
 The things like lightdm/sddm have some specific (or do not have) restrictions. For example sddm does not have imbeded locker, lightdm has something like dm-tool.
+
+
+I will write here... may be :)
 
 
