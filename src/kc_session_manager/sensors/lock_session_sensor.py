@@ -19,12 +19,12 @@ logger = LoggerConfig.get_logger()
 
 class SessionLockListener (BaseSensor):
     """Session lock signal monitoring via DBus"""
-    
+
     def __init__(self):
         super().__init__("session_locking")
         self.bus: MessageBus | None = None
         self.manager_proxy: ProxyInterface| None = None
-        
+
         self.session_path: str | None = None
         self.session_properties: dict = {}
         self.session_properties_interface: ProxyInterface = None
@@ -38,7 +38,7 @@ class SessionLockListener (BaseSensor):
         self._callback_lock: Callable | None = None
         self._callback_unlock: Callable | None = None
         self._callback_change_properties: Callable | None = None
-        
+
     async def initialize(self):
         """D-Bus connection initialization"""
 
@@ -48,7 +48,7 @@ class SessionLockListener (BaseSensor):
 
         try:
             self.bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
-            
+
             manager_intro = await self.bus.introspect(
                 "org.freedesktop.login1",
                 "/org/freedesktop/login1"
@@ -60,13 +60,13 @@ class SessionLockListener (BaseSensor):
             )
 
             self.manager_proxy = manager_obj.get_interface("org.freedesktop.login1.Manager")
-            
+
             self._is_initialize = True
             logger.info(f"Sensor {self.name} initialized")
             return True
-            
+
         except Exception as e:
-            logger.error(f"D-Bus initialization error: {e}")
+            logger.error(f"D-Bus initialization error: {e}", exc_info=e)
             return False
 
     def _variant_to_dict(self, data: dict[str, Variant]) -> dict:
@@ -77,7 +77,7 @@ class SessionLockListener (BaseSensor):
             for k, v in data.items():
                 result[k] = v.value if hasattr(v, "value") else v
         except Exception as e:
-            logger.error(f"Variant convert error: ", exc_info=e)
+            logger.error(f"Variant convert error: {e}", exc_info=e)
             return result
         return result
 
@@ -110,7 +110,7 @@ class SessionLockListener (BaseSensor):
             )
             self.session_properties = self._variant_to_dict(props)
             logger.debug(f"session_properties = {self.session_properties}")
-            
+
             self.session_interface = self.session_obj.get_interface(
                 "org.freedesktop.login1.Session"
             )
@@ -119,7 +119,7 @@ class SessionLockListener (BaseSensor):
 
             return "unlocked" if self.session_properties["Active"] else "locked"
         except Exception as e:
-            logger.error(f"Initial state error: ", exc_info=e)
+            logger.error(f"Initial state error: {e}", exc_info=e)
 
     async def _get_current_session_path(self, manager_interface):
         """Getting current session path"""
@@ -134,16 +134,16 @@ class SessionLockListener (BaseSensor):
                 return await self.manager_proxy.call_get_session_by_pid(pid)
 
         except Exception as e:
-            logger.error(f"Getting current session error: {e}")
+            logger.error(f"Getting current session error: {e}", exc_info=e)
             return None
-    
+
     async def _subscribe_signals(self):
         """Subscribing to D-Bus messages"""
-        
+
         await self._cleanup_signal_handlers()
-        
+
         logger.info(f"session_interface type: {type(self.session_interface)}")
-        
+
         self._callback_lock = self._on_lock
         self._callback_unlock = self._on_unlock
 
@@ -153,11 +153,8 @@ class SessionLockListener (BaseSensor):
 
         self._signal_handlers.append(self._on_lock)
         self._signal_handlers.append(self._on_lock)
-        for method in self._signal_handlers:
-            logger.info(f"list of _on_loks: {method}")
-            logger.info(f"list of _on_loks: {id(method)}")
 
-    def _on_session_properties_changed(
+    async def _on_session_properties_changed(
             self,
             session_path: str, 
             changed_properties: dict,
@@ -174,56 +171,52 @@ class SessionLockListener (BaseSensor):
         for k, v in changed_properties.items():
             self.session_properties[k] = v
             logger.info(f"Session::{session_path} {k}: {v}")
-            """
-            we should write here something like:
-            if k == "Active":
-                self.update_state("Active", True == v)
-            """
+
             if k == "Active":
                 logger.info(f"Getting Active k={k},v={v}")
-                self.update_state("Active", True == v)
+                await self.update_state("Active", True == v)
 
         logger.debug(f"session_properties = {self.session_properties}")
 
     async def _subscribe_to_session_properties(self, session_path: str, session_obj: ProxyObject):
-        """Subscribing to chenging session properties"""
+        """Subscribing to change session properties"""
 
-        logger.info("Subscribing to chenging session properties")
+        logger.info("Subscribing to change session properties")
         try:
-            logger.info(
+            logger.debug(
                 f"session_properties_interface type: {type(self.session_properties_interface)}"
             )
-            
+
             self._callback_change_properties = self._on_session_properties_changed
             self.session_properties_interface.on_properties_changed(
                 self._callback_change_properties
             )
 
         except Exception as e:
-            logger.error(f"Error subscribing to session properties for {session_path}: {e}")
+            logger.error(
+                f"Error subscribing to session properties for {session_path}: {e}", exc_info=e
+            )
 
     async def _cleanup_signal_handlers(self):
         """Cleaning all singal handlers"""
-        
+
         try:
             if self._callback_lock:
                 self.session_interface.off_lock(self._callback_lock)
                 self._callback_lock = None
-            
+
             if self._callback_unlock:
                 self.session_interface.off_lock(self._callback_unlock)
                 self._callback_unlock = None
-            
+
             if self._callback_change_properties:
                 self.session_properties_interface.off_properties_changed(
                     self._callback_change_properties
                 )
                 self._callback_change_properties = None
 
-            # for unsubscribe in self._signal_handlers:
-            #         unsubscribe()
         except Exception as e:
-            logger.error(f"Unsubscribing from signal handlers error", exc_info=e)
+            logger.error(f"Unsubscribing from signal handlers error {e}", exc_info=e)
         finally:
             self._signal_handlers.clear()
 
@@ -245,7 +238,7 @@ class SessionLockListener (BaseSensor):
         logger.info(f"Sensor {self.name} subscribed to {self.session_path}")
         while self.running:
             await asyncio.sleep(1)
-   
+
     async def stop_monitoring(self):
         """Stop monitoring"""
 
@@ -258,14 +251,14 @@ class SessionLockListener (BaseSensor):
 
 async def async_main():
     listener = SessionLockListener()
-    
+
     def signal_handler():
         asyncio.create_task(listener.stop_monitoring())
-    
+
     loop = asyncio.get_running_loop()
     for sig in [signal.SIGTERM, signal.SIGINT]:
         loop.add_signal_handler(sig, signal_handler)
-    
+
     try:
         await listener.start_monitoring()
     except asyncio.CancelledError:
