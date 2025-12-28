@@ -1,7 +1,7 @@
 """
-Author: kirill-chu <nefka2006@yandex.ru>
+Active VT (Virtual Terminal) sensor is an auxiliary sensor. It checks which VT is active now.
 
-Active VT (Virtual Terminal) sensor
+Author: kirill-chu <nefka2006@yandex.ru>
 """
 
 import asyncio
@@ -13,14 +13,17 @@ logger = LoggerConfig.get_logger()
 
 
 class VTSensor(BaseSensor):
-    """Отслеживает активный VT"""
+    """Checking active VT"""
 
     def __init__(self):
         super().__init__("vt")
-        self.our_vt: int | None = None   # VT нашего X-сервера (:0)
+        self.our_vt: int | None = None
+
+    async def initialize(self):
+        """Sensor initialization (Optional)"""
 
     async def get_active_vt(self):
-        """Получение активного VT через /sys"""
+        """Getting acrive VT via /sys"""
 
         try:
             with open("/sys/class/tty/tty0/active") as f:
@@ -32,7 +35,8 @@ class VTSensor(BaseSensor):
         return None
 
     async def get_initial_state(self):
-        """Получение начального состояния"""
+        """Getting initial state"""
+
         vt_state = await self.get_active_vt()
         if vt_state:
             self.our_vt = vt_state
@@ -40,7 +44,7 @@ class VTSensor(BaseSensor):
         return self.current if self.current else "unknown"
 
     async def start_monitoring(self):
-        """Мониторинг изменений VT"""
+        """Monitoring changes of VT"""
 
         self.running = True
         logger.info(f"Sensor {self.name} started")
@@ -51,7 +55,6 @@ class VTSensor(BaseSensor):
                 old_vt = self.current
                 self.current = new_vt
 
-                # Определяем состояние на основе VT
                 state = "active" if new_vt == self.our_vt else "inactive"
                 logger.info(f"VT changed from {old_vt} to {new_vt}, state: {state}")
                 await self.update_state(state, "vt_change")
@@ -59,6 +62,6 @@ class VTSensor(BaseSensor):
             await asyncio.sleep(2)  # Проверяем каждые 2 секунды
 
     async def stop_monitoring(self):
-        """Остановка мониторинга"""
+        """Stop monitoring"""
         self.running = False
         logger.info(f"Sensor {self.name} stopped")

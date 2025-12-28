@@ -25,7 +25,7 @@ class BaseSensor(ABC):
 
     @abstractmethod
     async def get_initial_state(self):
-        """Getting initial sensor state"""
+        """Getting initial sensor state (Optional)"""
 
     @abstractmethod
     async def initialize(self):
