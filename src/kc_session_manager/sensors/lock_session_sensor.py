@@ -174,7 +174,10 @@ class SessionLockListener (BaseSensor):
 
             if k == "Active":
                 logger.info(f"Getting Active k={k},v={v}")
-                await self.update_state("Active", True == v)
+                await self.update_state(
+                    "unlocked" if v else "locked",
+                    "set"
+                )
 
         logger.debug(f"session_properties = {self.session_properties}")
 
@@ -224,13 +227,13 @@ class SessionLockListener (BaseSensor):
         """Lock session handler"""
 
         logger.info("Lock signal has been received")
-        await self.update_state("lock", "set")
+        await self.update_state("locked", "set")
     
     async def _on_unlock(self):
         """Unlock session handler"""
 
         logger.info("Unlock signal has been received")
-        await self.update_state("unlock", "set")
+        await self.update_state("unlocked", "set")
  
     async def start_monitoring(self):
         """Run session lock monitoring"""

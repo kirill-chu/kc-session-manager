@@ -1,20 +1,23 @@
-import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
+from kc_session_manager.core.logger_config import LoggerConfig
+logger = LoggerConfig.get_logger()
+
+
 class BaseSensor(ABC):
     """Abstract class for sensors"""
-    
+
     def __init__(self, name):
         self.name = name
         self.callback = None
         self.running = False
         self.current_state = None
-    
+
     def set_callback(self, callback):
         """Set callback for notifications"""
         self.callback = callback
-    
+
     async def get_initial_state(self):
         """Getting initial sensor state"""
 
@@ -25,7 +28,7 @@ class BaseSensor(ABC):
         """Sending the notification via callback"""
         if self.callback:
             await self.callback(self.name, event_type, state)
-    
+
     async def start(self):
         """Start: Initialization, set initials parameters, staring monitoring"""
 
@@ -34,31 +37,35 @@ class BaseSensor(ABC):
         initial_state = await self.get_initial_state()
         if initial_state is not None:
             self.current_state = initial_state
-            logging.debug(
+            logger.info(
                 f"Initial state for {self.__class__.__name__}, state: {initial_state}"
             )
             await self.notify("initial", initial_state)
-        
+
         await self.start_monitoring()
-    
+
     async def stop(self):
         """Stop monitoring"""
         await self.stop_monitoring()
-    
+
     async def update_state(self, new_state: Any, event_type: str = "change"):
         """Updating state and sending notification"""
-        
+
+        logger.info(
+            f"Updating. Event: {event_type} for {self.__class__.__name__}, state: {new_state}"
+        )
+
         if new_state != self.current_state:
             self.current_state = new_state
-            logging.debug(
-                f"Update. Event: {event_type} for {self.__class__.__name__}, state: {new_state}"
+            logger.info(
+                f"Updated. Event: {event_type} for {self.__class__.__name__}, state: {new_state}"
             )
             await self.notify(event_type, new_state)
-    
+
     @abstractmethod
     async def start_monitoring(self):
         """Start monitoring"""
- 
+
     @abstractmethod
     async def stop_monitoring(self):
         """Stop monitoring"""

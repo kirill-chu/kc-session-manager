@@ -137,7 +137,7 @@ class IdleManager:
     async def handle_sensor_update(self, sensor_name: str, event_type: str, state: str):
         """Updating a sensor state"""
 
-        logger.info(f"Updating sensor {sensor_name}: {event_type} -> {state}")
+        logger.info(f"Handle sensor {sensor_name}: {event_type} -> {state}")
         self.sensor_sates[sensor_name] = {
                 "event_type": event_type,
                 "state": state,
@@ -163,16 +163,20 @@ class IdleManager:
             return
         
         if sensor_name == "session_locking":
-            if state == "lock" and event_type == "set":
+            logger.info(f"{sensor_name=}, {state=}, {event_type=}")
+            if state == "locked" and event_type == "set":
                 await self._execute_locker("set")
                 self.session_locked_mode = True
                 await self._start_lock_timer()
-            elif state == "unlock":
+            elif state == "unlocked":
                 self.session_locked_mode = False
                 await self._cancel_lock_timer()
                 self.lock_session_interface = None
                 await self.set_idle(False)
                 self.is_session_locked = False
+            elif state == "active" and event_type == "yes":
+                await self.set_idle(False)
+                logger.info("Idle Canceled, check loginctl.")
             else:
                 logger.info(f"state={state}, event_type={event_type}")
             return
@@ -180,7 +184,8 @@ class IdleManager:
         if not self.our_x11:
             logger.debug(f"Ignoring {sensor_name} event - X server is not active")
             return
-
+        
+        # Screensaver sensor
         logger.info("Applying rules...")
         await self._apply_rules()
         
