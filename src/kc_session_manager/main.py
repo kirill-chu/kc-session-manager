@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
+"""
+Author: kirill-chu <nefka2006@yandex.ru>
+"""
 
 import argparse
 import asyncio
 
 from kc_session_manager.core.logger_config import LoggerConfig
+
 
 def get_args():
     """Parsing args"""
@@ -39,7 +43,7 @@ def main():
 
     logger = LoggerConfig.get_logger()
     logger.debug("Application started with args: %s", args)
-    
+
     return asyncio.run(async_main())
 
 if __name__ == "__main__":

@@ -1,3 +1,7 @@
+"""
+Author: kirill-chu <nefka2006@yandex.ru>
+"""
+
 import asyncio
 
 import xcffib
@@ -11,7 +15,7 @@ logger = LoggerConfig.get_logger()
 
 class ScreensaverMonitor(BaseSensor):
     """XCB event monitoring"""
-    
+
     def __init__(self):
         super().__init__("screensaver")
         self.conn = None
@@ -32,10 +36,10 @@ class ScreensaverMonitor(BaseSensor):
             setup = self.conn.get_setup()
             self.root = setup.roots[0].root
             self.screensaver = self.conn(xcffib.screensaver.key)
-            logger.info(f"Screensaver extension is available")
+            logger.info("Screensaver extension is available")
         except Exception as e:
-            logger.error(f"Initialization connection error: ", exc_info=e)
-    
+            logger.error(f"Initialization connection error: {e}", exc_info=e)
+
     async def get_initial_state(self):
         """Getting screensaver state"""
         try:
@@ -48,7 +52,7 @@ class ScreensaverMonitor(BaseSensor):
             logger.info(f"Getting {self.name} current sate error: ", exc_info=e)
             return "unknown"
 
-    
+
     async def start_monitoring(self):
         """Starting screensaver monitoring"""
 
@@ -56,16 +60,16 @@ class ScreensaverMonitor(BaseSensor):
             SCREENSAVER_NOTIFY_MASK = 0x001
             self.screensaver.SelectInput(self.root, SCREENSAVER_NOTIFY_MASK)
             self.conn.flush()
-            
+
             self.running = True
             logger.info(f"Sensor {self.name} started")
-            
+
             await self._event_loop()
-            
+
         except Exception as e:
-            logger.error(f"Sensor starting error {self.name}: {e}")
+            logger.error(f"Sensor starting error {self.name}: {e}", exc_info=e)
             await self.stop()
-    
+
     async def _event_loop(self):
         """Event loop"""
 
@@ -78,8 +82,8 @@ class ScreensaverMonitor(BaseSensor):
                 await asyncio.sleep(0.01)
             except Exception as e:
                 if self.running:
-                    logger.error(f"Event loop error in {self.name}: {e}")
-    
+                    logger.error(f"Event loop error in {self.name}: {e}", exc_info=e)
+
     async def stop_monitoring(self):
         """Stop sensor"""
 

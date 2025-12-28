@@ -1,3 +1,7 @@
+"""
+Author: kirill-chu <nefka2006@yandex.ru>
+"""
+
 import asyncio
 
 import xcffib
@@ -11,7 +15,7 @@ logger = LoggerConfig.get_logger()
 
 class DpmsPollingMonitor(BaseSensor):
     """DPMS monitoring"""
-    
+
     def __init__(self, poll_interval=2):
         super().__init__("dpms")
         self.poll_interval = poll_interval
@@ -19,26 +23,26 @@ class DpmsPollingMonitor(BaseSensor):
         self.dpms = None
         self.dpms_available = False
         self.last_power_level = None
-        
+
         self.dpms_modes = {
             0: "On",
-            1: "Standby", 
+            1: "Standby",
             2: "Suspend",
             3: "Off"
         }
 
     async def initialize(self):
         """Initializing connection to X11"""
-        
+
         try:
             self.conn = xcffib.connect()
             self.dpms = self.conn(xcffib.dpms.key)
             _ = self.dpms.GetVersion(1, 1).reply()
             self.dpms_available = True
-            logger.info(f"DPMS extension is available")
+            logger.info("DPMS extension is available")
         except Exception as e:
-            logger.error(f"Initialization connection error: ", exc_info=e)
-    
+            logger.error(f"Initialization connection error: {e}", exc_info=e)
+
     async def get_initial_state(self):
         """Getting current DPMS state"""
 
@@ -52,22 +56,22 @@ class DpmsPollingMonitor(BaseSensor):
         except Exception as e:
             logger.info(f"Getting {self.name} current sate error: {e}")
             return "unknown"
-    
+
     async def start_monitoring(self):
         """Run DPMS monitoring"""
 
         try:
             self.running = True
             logger.info(f"Sensor {self.name} started (pooling each {self.poll_interval} sec)")
-            
+
             while self.running:
                 await self._check_dpms_state()
                 await asyncio.sleep(self.poll_interval)
-                
+
         except Exception as e:
-            logger.error(f"Sensor {self.name} error: {e}")
+            logger.error(f"Sensor {self.name} error {e}", exc_info=e)
             await self.stop()
-    
+
     async def _check_dpms_state(self):
         """Checking sate of DPMS"""
 
@@ -80,8 +84,8 @@ class DpmsPollingMonitor(BaseSensor):
                 await self.update_state(self.dpms_modes.get(power_level, "unknown"))
 
         except Exception as e:
-            logger.error(f"Getting DPMS state error: {e}")
-    
+            logger.error(f"Getting DPMS state error: {e}", exc_info=e)
+
     async def stop_monitoring(self):
         """Stop sensor"""
 

@@ -1,7 +1,12 @@
+"""
+Author: kirill-chu <nefka2006@yandex.ru>
+"""
+
 from abc import ABC, abstractmethod
 from typing import Any
 
 from kc_session_manager.core.logger_config import LoggerConfig
+
 logger = LoggerConfig.get_logger()
 
 
@@ -18,9 +23,11 @@ class BaseSensor(ABC):
         """Set callback for notifications"""
         self.callback = callback
 
+    @abstractmethod
     async def get_initial_state(self):
         """Getting initial sensor state"""
 
+    @abstractmethod
     async def initialize(self):
         """Sensor initialization (Optional)"""
 

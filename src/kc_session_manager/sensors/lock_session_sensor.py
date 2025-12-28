@@ -156,7 +156,7 @@ class SessionLockListener (BaseSensor):
 
     async def _on_session_properties_changed(
             self,
-            session_path: str, 
+            session_path: str,
             changed_properties: dict,
             invalidated: list
         ):
@@ -228,13 +228,13 @@ class SessionLockListener (BaseSensor):
 
         logger.info("Lock signal has been received")
         await self.update_state("locked", "set")
-    
+
     async def _on_unlock(self):
         """Unlock session handler"""
 
         logger.info("Unlock signal has been received")
         await self.update_state("unlocked", "set")
- 
+
     async def start_monitoring(self):
         """Run session lock monitoring"""
 
@@ -254,9 +254,12 @@ class SessionLockListener (BaseSensor):
 
 async def async_main():
     listener = SessionLockListener()
+    background_tasks = set()
 
     def signal_handler():
-        asyncio.create_task(listener.stop_monitoring())
+        task = asyncio.create_task(listener.stop_monitoring())
+        background_tasks.add(task)
+        task.add_done_callback(background_tasks.discard)
 
     loop = asyncio.get_running_loop()
     for sig in [signal.SIGTERM, signal.SIGINT]:

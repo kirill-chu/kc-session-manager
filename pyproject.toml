@@ -13,8 +13,12 @@ dependencies = [
 [project.scripts]
 kc-session-manager = "kc_session_manager.main:main"
 
-
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["kc_session_manager*"]
 exclude = ["tests*", "docs*", "system_service/*"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.10",
+]

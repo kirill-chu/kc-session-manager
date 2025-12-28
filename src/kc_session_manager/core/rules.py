@@ -1,13 +1,13 @@
 """
 This file contains some rule functions.
+
+Author: kirill-chu <nefka2006@yandex.ru>
 """
 
 from kc_session_manager.core.logger_config import LoggerConfig
 
 logger = LoggerConfig.get_logger()
 
-
-logger = LoggerConfig.get_logger()
 
 def basic_dpms_screensaver_rule(sensor_states):
     """
@@ -22,7 +22,7 @@ def basic_dpms_screensaver_rule(sensor_states):
 
     if (dpms_state or sensor_states) == "unknown":
         return None
-    
+
     logger.debug(f"{dpms_state=}")
     logger.debug(f"{screensaver_state=}")
 
@@ -31,7 +31,7 @@ def basic_dpms_screensaver_rule(sensor_states):
 
     try:
         should_idle = (
-            dpms_state.lower() in ["standby", "suspend", "off"] or 
+            dpms_state.lower() in ["standby", "suspend", "off"] or
             screensaver_state.lower() == "on"
         )
         if session_state == "locked":
@@ -39,8 +39,7 @@ def basic_dpms_screensaver_rule(sensor_states):
         return should_idle
 
     except Exception as e:
-        logger.error("Unexpected error", exc_info=e)
-
+        logger.error(f"Unexpected error: {e}", exc_info=e)
 
 def modest_dpms_screensaver_rule(sensor_states):
     """
@@ -53,16 +52,16 @@ def modest_dpms_screensaver_rule(sensor_states):
 
     logger.debug(f"{dpms_state=}")
     logger.debug(f"{screensaver_state=}")
-    
+
     if dpms_state is None or screensaver_state is None:
         return None
 
     try:
         should_idle = (
-            dpms_state.lower() in ["standby", "suspend", "off"] and 
+            dpms_state.lower() in ["standby", "suspend", "off"] and
             screensaver_state.lower() == "on"
         )
         return should_idle
 
     except Exception as e:
-        logger.error("Unexpected error", exc_info=e)
+        logger.error(f"Unexpected error: {e}", exc_info=e)
