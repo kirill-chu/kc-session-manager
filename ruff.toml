@@ -10,4 +10,4 @@ select = ["E", "W", "F", "I", "B", "UP", "RUF"]
 ignore = ["E501"]
 
 [lint.isort]
-known-first-party = ["kc_cfg_snap"]
+known-first-party = ["kc_session_manager"]
