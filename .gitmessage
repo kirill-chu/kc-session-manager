@@ -1,0 +1,19 @@
+# Title: <type>(<scope>): <short summary>
+# | Type: feat, fix, docs, style, refactor, perf, test, chore
+# | Scope: optional, module/component name
+# 
+# feat:     New functionality
+# fix:      Error correction  
+# docs:     Changes in documentation
+# style:    Formatting changes (spaces, semicolons, etc.)
+# refactor: Code refactoring (without changing behavior)
+# perf:     Performance Changes
+# test:     Adding or correcting tests
+# chore:    Changes in the build process or auxiliary tools
+#
+# Example: feat(metrics): add memory usage monitoring
+# Example: fix(x11): handle session timeout edge case
+# Example: perf(collector): optimize data collection by 40%
+#
+# Body: detailed description (if necessary)
+# Footer: BREAKING CHANGE or links to issues
